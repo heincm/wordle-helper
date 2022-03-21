@@ -14,14 +14,14 @@ const readFileLines = filename =>
 
 let masterWordList = readFileLines('./fiveLetterWords.txt');
 
-function populateValidLetterArray(prompt) {
-    for (let letter of prompt) {
+function populateValidLetterArray(userInput) {
+    for (let letter of userInput) {
         validLetterList.push(letter)
     }
 }
 
-function populateBadLetterArray(prompt) {
-    for (let letter of prompt) {
+function populateBadLetterArray(userInput) {
+    for (let letter of userInput) {
         badLetterList.add(letter)
     }
 }
@@ -42,7 +42,7 @@ for (let letter of validLetterList) {
 // TODO: Account for duplicate letters
 //  - Arguably, a user can submit the same letter twice above. Need to think on best implementation
 for (let letter of validLetterList) {
-    let validLetterLocationPrompt = prompt(`If known, type the location of the letter ${letter}, else leave blank `, 6)
+    let validLetterLocationPrompt = [prompt(`If known, type the location of the letter ${letter}, else leave blank `, 6)]
     let validLetterLocation = parseInt(validLetterLocationPrompt) - 1
     if (validLetterLocation <= 4) {
         masterWordList = masterWordList.filter(word => word[validLetterLocation] === letter)
@@ -52,7 +52,7 @@ for (let letter of validLetterList) {
 
 // TODO: Allow user to enter multiple locations where letter does not belong
 for (let letter of validLetterList) {
-    let validLetterNonLocationPrompt = prompt(`Type the location where ${letter} does not belong, else leave blank `, 6)
+    let validLetterNonLocationPrompt = [prompt(`Type the location where ${letter} does not belong, else leave blank `, 6)]
     for (let entry of validLetterNonLocationPrompt) {
         let validLetterNonLocation = parseInt(entry) - 1
         if (validLetterNonLocation <= 4) {
