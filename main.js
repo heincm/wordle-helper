@@ -5,7 +5,7 @@ let lettersToEliminate = prompt('Type all letters not used in the word: ').toLow
 let knownLetters = prompt('Type all known letters of the word: ').toLowerCase()
 
 let validLetterList = []
-let badLetterList = []
+let badLetterList = new Set()
 
 const readFileLines = filename =>
     fs.readFileSync(filename)
@@ -22,7 +22,7 @@ function populateValidLetterArray(prompt) {
 
 function populateBadLetterArray(prompt) {
     for (let letter of prompt) {
-        badLetterList.push(letter)
+        badLetterList.add(letter)
     }
 }
 
@@ -33,44 +33,32 @@ for (let letter of badLetterList) {
     masterWordList = masterWordList.filter(word => !word.includes(letter))
 }
 
+// TODO: Ensure no more than 5 letters are entered
+// TODO: Ensure no valid letters match invalid letters
 for (let letter of validLetterList) {
     masterWordList = masterWordList.filter(word => word.includes(letter))
 }
 
-console.log(masterWordList)
-
-/*
-Loop for getting known letters and locations
-*/
-
-
-/* 
-End loop for getting known letters and location
-*/
-
-let Letter = function (myString, location) {
-    this.myString = myString;
-    this.isLetterInTheWord = false;
-    this.location = location;
-}
-
-let Word = function (guessWord) {
-    this.guessWord = guessWord;
-    this.wordsArray = [];
-    for (let letter of this.guessWord) {
-        this.wordsArray.push(letter.replace(/[^A-Z]/ig, 'a'))
+// TODO: Account for duplicate letters
+//  - Arguably, a user can submit the same letter twice above. Need to think on best implementation
+for (let letter of validLetterList) {
+    let validLetterLocationPrompt = prompt(`If known, type the location of the letter ${letter}, else leave blank `, 6)
+    let validLetterLocation = parseInt(validLetterLocationPrompt) - 1
+    if (validLetterLocation <= 4) {
+        masterWordList = masterWordList.filter(word => word[validLetterLocation] === letter)
+        validLetterList = validLetterList.filter(arrayLetter => arrayLetter != letter)
     }
-    this.logIt = () => console.log(this.wordsArray)
 }
 
-/*
-Pseudocode 
-1. Ask for letters not in the word to help cut down on alphabet and letters needed there
-    Will need a while loop to run until user says they are done
-2. Ask for any known letters
-    another while loop until user is done
-3. For each known letter, ask for it's position in the word
-    E.g. known letters are A, C, E. User will say A = 1, C = 3, E = 5
-4. If a user does not know the location of a known letter, will need to ensure that letter is included at least once in the generated word(s)
-5. Filter list down to only words containing known letters and letters in known location
- */
+// TODO: Allow user to enter multiple locations where letter does not belong
+for (let letter of validLetterList) {
+    let validLetterNonLocationPrompt = prompt(`Type the location where ${letter} does not belong, else leave blank `, 6)
+    for (let entry of validLetterNonLocationPrompt) {
+        let validLetterNonLocation = parseInt(entry) - 1
+        if (validLetterNonLocation <= 4) {
+            masterWordList = masterWordList.filter(word => word[validLetterNonLocation] != letter)
+        }
+    }
+}
+
+console.log(masterWordList)
