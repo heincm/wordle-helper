@@ -1,68 +1,60 @@
-const axios = require('axios')
-const prompt = require('prompt-sync')({sigint: true});
-const baseUrl = 'https://api.dictionaryapi.dev/api/v2/entries/en'
+const prompt = require('prompt-sync')({ sigint: true });
+const fs = require('fs');
 
-let userInput = prompt('Type a 5 letter word: ').toLowerCase()
 let lettersToEliminate = prompt('Type all letters not used in the word: ').toLowerCase()
+let knownLetters = prompt('Type all known letters of the word: ').toLowerCase()
 
-let alphabet = [...'abcdefghijklmnopqrstuvwxyz'];
+let validLetterList = []
+let badLetterList = []
 
-let params = userInput
-let url = `${baseUrl}/${params}`
+const readFileLines = filename =>
+    fs.readFileSync(filename)
+        .toString('UTF8')
+        .split('\n');
 
-function eliminateLetters(prompt) {
-    for (let alpha of prompt) {
-        alphabet = alphabet.filter(letter => filterLetters(letter, alpha))
+let masterWordList = readFileLines('./fiveLetterWords.txt');
+
+function populateValidLetterArray(prompt) {
+    for (let letter of prompt) {
+        validLetterList.push(letter)
     }
 }
 
-function filterLetters(letter, notLetter) {
-    if (letter != notLetter){
-        return letter
+function populateBadLetterArray(prompt) {
+    for (let letter of prompt) {
+        badLetterList.push(letter)
     }
 }
 
-eliminateLetters(lettersToEliminate)
-console.log(alphabet)
+populateBadLetterArray(lettersToEliminate)
+populateValidLetterArray(knownLetters)
+
+for (let letter of badLetterList) {
+    masterWordList = masterWordList.filter(word => !word.includes(letter))
+}
+
+for (let letter of validLetterList) {
+    masterWordList = masterWordList.filter(word => word.includes(letter))
+}
+
+console.log(masterWordList)
 
 /*
 Loop for getting known letters and locations
 */
 
-let knownLetters = prompt('Type all known letters of the word: ').toLowerCase()
 
 /* 
 End loop for getting known letters and location
 */
 
-callDictinonaryApi()
-
-async function callDictinonaryApi(){
-    const res = await Promise.all([axios.get(url)
-    .then(response => console.log(responseOrNull(response)))
-    .catch(err => console.log(`ERROR!: ${err}`)), 
-    axios.get(`${url}es`).then(response => console.log(responseOrNull(response)))
-    .catch(err => console.log(`ERROR!: ${err}`))])
-
-    return res
-}
-
-
-function responseOrNull(response){
-    if (response.status === 200 && response.data) {
-        return `${response.data[0].word} is in the dictionary!`
-    }
-    return "Something isn't right"
-}
-
-
-let Letter = function(myString, location) {
+let Letter = function (myString, location) {
     this.myString = myString;
     this.isLetterInTheWord = false;
     this.location = location;
 }
 
-let Word = function(guessWord) {
+let Word = function (guessWord) {
     this.guessWord = guessWord;
     this.wordsArray = [];
     for (let letter of this.guessWord) {
@@ -70,15 +62,6 @@ let Word = function(guessWord) {
     }
     this.logIt = () => console.log(this.wordsArray)
 }
-
-let myWord = new Word(userInput)
-
-myWord.logIt()
-
-// alphabet = alphabet.filter(letter => filterLetters(letter, 'z'))
-
-
-// console.log(alphabet)
 
 /*
 Pseudocode 
@@ -89,5 +72,5 @@ Pseudocode
 3. For each known letter, ask for it's position in the word
     E.g. known letters are A, C, E. User will say A = 1, C = 3, E = 5
 4. If a user does not know the location of a known letter, will need to ensure that letter is included at least once in the generated word(s)
-5. Find a way to cycle through all word permutations with every remaining letter of the alphabet
+5. Filter list down to only words containing known letters and letters in known location
  */
