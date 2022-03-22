@@ -1,64 +1,83 @@
 const prompt = require('prompt-sync')({ sigint: true });
 const fs = require('fs');
 
-let lettersToEliminate = prompt('Type all letters not used in the word: ').toLowerCase()
-let knownLetters = prompt('Type all known letters of the word: ').toLowerCase()
-
-let validLetterList = []
-let badLetterList = new Set()
+let validLetterArray = []
+let badLetterSet = new Set()
 
 const readFileLines = filename =>
     fs.readFileSync(filename)
         .toString('UTF8')
+        .toUpperCase()
         .split('\n');
 
 let masterWordList = readFileLines('./fiveLetterWords.txt');
 
 function populateValidLetterArray(userInput) {
     for (let letter of userInput) {
-        validLetterList.push(letter)
+        validLetterArray.push(letter)
     }
 }
 
-function populateBadLetterArray(userInput) {
+function populateBadLetterSet(userInput) {
     for (let letter of userInput) {
-        badLetterList.add(letter)
+        badLetterSet.add(letter)
     }
 }
 
-populateBadLetterArray(lettersToEliminate)
-populateValidLetterArray(knownLetters)
+while (masterWordList.length > 1) {
 
-for (let letter of badLetterList) {
-    masterWordList = masterWordList.filter(word => !word.includes(letter))
-}
-
-// TODO: Ensure no more than 5 letters are entered
-// TODO: Ensure no valid letters match invalid letters
-for (let letter of validLetterList) {
-    masterWordList = masterWordList.filter(word => word.includes(letter))
-}
-
-// TODO: Account for duplicate letters
-//  - Arguably, a user can submit the same letter twice above. Need to think on best implementation
-for (let letter of validLetterList) {
-    let validLetterLocationPrompt = [prompt(`If known, type the location of the letter ${letter}, else leave blank `, 6)]
-    let validLetterLocation = parseInt(validLetterLocationPrompt) - 1
-    if (validLetterLocation <= 4) {
-        masterWordList = masterWordList.filter(word => word[validLetterLocation] === letter)
-        validLetterList = validLetterList.filter(arrayLetter => arrayLetter != letter)
+    if (badLetterSet.length > 0) {
+        console.log(`Known bad letters: ${Array.from(badLetterSet).join()}`)
     }
-}
 
-// TODO: Allow user to enter multiple locations where letter does not belong
-for (let letter of validLetterList) {
-    let validLetterNonLocationPrompt = [prompt(`Type the location where ${letter} does not belong, else leave blank `, 6)]
-    for (let entry of validLetterNonLocationPrompt) {
-        let validLetterNonLocation = parseInt(entry) - 1
-        if (validLetterNonLocation <= 4) {
-            masterWordList = masterWordList.filter(word => word[validLetterNonLocation] != letter)
+    if (validLetterArray.length > 0) {
+        console.log(`Known good letters: ${validLetterArray.join()}`)
+    }
+
+    let lettersToEliminate = prompt('Type all letters not used in the word: ').toUpperCase()
+    let knownLetters = prompt('Type all known letters of the word: ').toUpperCase()
+
+    populateBadLetterSet(lettersToEliminate)
+    populateValidLetterArray(knownLetters)
+
+    for (let letter of badLetterSet) {
+        masterWordList = masterWordList.filter(word => !word.includes(letter))
+    }
+
+    // TODO: Ensure no more than 5 letters are entered
+    // TODO: Ensure no valid letters match invalid letters
+    for (let letter of validLetterArray) {
+        masterWordList = masterWordList.filter(word => word.includes(letter))
+    }
+
+
+    for (let letter of validLetterArray) {
+        let validLetterLocationPrompt = prompt(`If known, type the location of the letter ${letter}, else leave blank `, 6)
+            .toString()
+            .split('')
+        for (let entry of validLetterLocationPrompt) {
+            let validLetterLocation = parseInt(entry) - 1
+            if (validLetterLocation <= 4) {
+                masterWordList = masterWordList.filter(word => word[validLetterLocation] === letter)
+                validLetterArray = validLetterArray.filter(arrayLetter => arrayLetter != letter)
+            }
         }
     }
+
+    // TODO: Allow user to enter multiple locations where letter does not belong
+    for (let letter of validLetterArray) {
+        let validLetterNonLocationPrompt = prompt(`Type the location(s) where ${letter} does not belong, else leave blank `, 6)
+            .toString()
+            .split('')
+        for (let entry of validLetterNonLocationPrompt) {
+            let validLetterNonLocation = parseInt(entry) - 1
+            if (validLetterNonLocation <= 4) {
+                masterWordList = masterWordList.filter(word => word[validLetterNonLocation] != letter)
+            }
+        }
+    }
+
+    console.log(masterWordList)
 }
 
-console.log(masterWordList)
+console.log(`Your word is ${masterWordList}`)
