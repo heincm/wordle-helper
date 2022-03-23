@@ -77,7 +77,27 @@ while (masterWordList.length > 1) {
         }
     }
 
+    if (masterWordList.length === 0) {
+        console.log("Looks like that word isn't in this dictionary...yet")
+        break
+    }
+
     console.log(masterWordList)
+
+    if (prompt('To start over with a new word, pres "N". Otherwise, press Enter ').toUpperCase() === 'N') {
+        masterWordList = readFileLines('./fiveLetterWords.txt')
+        validLetterArray = []
+        badLetterSet.clear()
+    }
 }
 
-console.log(`Your word is ${masterWordList}`)
+switch(masterWordList.length) {
+    case 0:
+        console.log("Exiting program to update the dictionary")
+        break
+    case 1:
+        console.log(`Your word is ${masterWordList[0]}`)
+        break
+    default:
+        console.log(`Your possible words are ${masterWordList}`)
+}
